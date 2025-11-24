@@ -1,0 +1,10 @@
+config/
+mcp_server/
+docker/
+*.py
+*.sh
+*.bat
+.github/
+README*.md
+LICENSE
+.git/
