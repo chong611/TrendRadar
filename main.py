@@ -2233,6 +2233,119 @@ def render_html_content(
             }
 
             
+            /* 搜索栏样式 */
+            .search-container {
+                padding: 20px 24px;
+                background: #f8f9fa;
+                border-bottom: 2px solid #e5e7eb;
+            }
+            
+            .search-box {
+                position: relative;
+                max-width: 100%;
+            }
+            
+            .search-input {
+                width: 100%;
+                padding: 12px 40px 12px 16px;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                font-size: 15px;
+                transition: all 0.3s ease;
+                background: white;
+            }
+            
+            .search-input:focus {
+                outline: none;
+                border-color: #4f46e5;
+                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            }
+            
+            .search-icon {
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #999;
+                font-size: 18px;
+            }
+            
+            .search-stats {
+                margin-top: 12px;
+                font-size: 13px;
+                color: #666;
+                text-align: center;
+            }
+            
+            .search-stats strong {
+                color: #4f46e5;
+                font-weight: 600;
+            }
+            
+            .filter-buttons {
+                margin-top: 12px;
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .filter-btn {
+                padding: 6px 12px;
+                border: 1px solid #e0e0e0;
+                background: white;
+                border-radius: 6px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            
+            .filter-btn:hover {
+                border-color: #4f46e5;
+                color: #4f46e5;
+            }
+            
+            .filter-btn.active {
+                background: #4f46e5;
+                color: white;
+                border-color: #4f46e5;
+            }
+            
+            .word-group.hidden {
+                display: none;
+            }
+            
+            .news-item.hidden {
+                display: none;
+            }
+            
+            .highlight {
+                background: #fef08a;
+                padding: 2px 4px;
+                border-radius: 2px;
+            }
+            
+            .no-results {
+                text-align: center;
+                padding: 60px 20px;
+                color: #999;
+            }
+            
+            .no-results-icon {
+                font-size: 48px;
+                margin-bottom: 16px;
+            }
+            
+            .no-results-text {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+            
+            .no-results-hint {
+                font-size: 13px;
+                color: #bbb;
+            }
+            
             @media (max-width: 480px) {
                 body { padding: 12px; }
                 .header { padding: 24px 20px; }
@@ -2317,6 +2430,28 @@ def render_html_content(
             </div>
             
             <div class="content">
+
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchInput" placeholder="🔍 搜索关键词...（例如：AI、比特币、特斯拉）">
+                <span class="search-icon">⌕</span>
+            </div>
+            <div class="search-stats" id="searchStats">
+                显示全部 <strong id="totalCount">0</strong> 条新闻
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterBySource('all')">全部</button>
+                <button class="filter-btn" onclick="filterBySource('zhihu')">知乎</button>
+                <button class="filter-btn" onclick="filterBySource('财联社')">财联社</button>
+                <button class="filter-btn" onclick="filterBySource('华尔街见闻')">华尔街见闻</button>
+                <button class="filter-btn" onclick="filterBySource('百度')">百度</button>
+            </div>
+        </div>
+        <div id="noResults" class="no-results" style="display: none;">
+            <div class="no-results-icon">🔍</div>
+            <div class="no-results-text">未找到匹配的新闻</div>
+            <div class="no-results-hint">尝试其他关键词或清空搜索</div>
+        </div>
         <div class="search-container">
             <div class="search-box">
                 <input type="text" class="search-input" id="searchInput" placeholder="🔍 搜索关键词...（例如：AI、比特币、特斯拉）">
