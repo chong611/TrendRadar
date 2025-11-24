@@ -329,6 +329,119 @@
                 width: 100%;
             }
         }
+
+        /* 搜索栏样式 */
+        .search-container {
+            padding: 20px 24px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .search-box {
+            position: relative;
+            max-width: 100%;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 40px 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 18px;
+        }
+        
+        .search-stats {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .search-stats strong {
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        
+        .filter-buttons {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .filter-btn {
+            padding: 6px 12px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-btn:hover {
+            border-color: #4f46e5;
+            color: #4f46e5;
+        }
+        
+        .filter-btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+        
+        .word-group.hidden {
+            display: none;
+        }
+        
+        .news-item.hidden {
+            display: none;
+        }
+        
+        .highlight {
+            background: #fef08a;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .no-results-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .no-results-text {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .no-results-hint {
+            font-size: 13px;
+            color: #bbb;
+        }
     </style>
 </head>
 <body>
@@ -360,6 +473,28 @@
         </div>
 
         <div class="content">
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchInput" placeholder="🔍 搜索关键词...（例如：AI、比特币、特斯拉）">
+                <span class="search-icon">⌕</span>
+            </div>
+            <div class="search-stats" id="searchStats">
+                显示全部 <strong id="totalCount">0</strong> 条新闻
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterBySource('all')">全部</button>
+                <button class="filter-btn" onclick="filterBySource('zhihu')">知乎</button>
+                <button class="filter-btn" onclick="filterBySource('财联社')">财联社</button>
+                <button class="filter-btn" onclick="filterBySource('华尔街见闻')">华尔街见闻</button>
+                <button class="filter-btn" onclick="filterBySource('百度')">百度</button>
+            </div>
+        </div>
+        <div id="noResults" class="no-results" style="display: none;">
+            <div class="no-results-icon">🔍</div>
+            <div class="no-results-text">未找到匹配的新闻</div>
+            <div class="no-results-hint">尝试其他关键词或清空搜索</div>
+        </div>
+
             <div class="word-group">
                 <div class="word-header">
                     <div class="word-info">
@@ -742,6 +877,129 @@
         document.addEventListener('DOMContentLoaded', function() {
             window.scrollTo(0, 0);
         });
+    
+        // 搜索和筛选功能
+        let currentSourceFilter = 'all';
+        
+        function initSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const totalCount = document.querySelectorAll('.news-item').length;
+            document.getElementById('totalCount').textContent = totalCount;
+            
+            // 实时搜索
+            searchInput.addEventListener('input', function() {
+                performSearch();
+            });
+            
+            // 回车搜索
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        }
+        
+        function performSearch() {
+            const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+            const wordGroups = document.querySelectorAll('.word-group');
+            const noResults = document.getElementById('noResults');
+            let visibleCount = 0;
+            let matchedGroups = 0;
+            
+            wordGroups.forEach(group => {
+                const newsItems = group.querySelectorAll('.news-item');
+                let groupHasMatch = false;
+                
+                newsItems.forEach(item => {
+                    const title = item.querySelector('.news-title').textContent.toLowerCase();
+                    const sourceName = item.querySelector('.source-name').textContent.toLowerCase();
+                    
+                    // 检查是否匹配关键词和来源筛选
+                    const matchesKeyword = keyword === '' || title.includes(keyword);
+                    const matchesSource = currentSourceFilter === 'all' || sourceName.includes(currentSourceFilter.toLowerCase());
+                    
+                    if (matchesKeyword && matchesSource) {
+                        item.classList.remove('hidden');
+                        groupHasMatch = true;
+                        visibleCount++;
+                        
+                        // 高亮关键词
+                        if (keyword !== '') {
+                            highlightKeyword(item.querySelector('.news-title'), keyword);
+                        } else {
+                            removeHighlight(item.querySelector('.news-title'));
+                        }
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+                
+                // 隐藏没有匹配项的词组
+                if (groupHasMatch) {
+                    group.classList.remove('hidden');
+                    matchedGroups++;
+                } else {
+                    group.classList.add('hidden');
+                }
+            });
+            
+            // 更新统计信息
+            const searchStats = document.getElementById('searchStats');
+            if (keyword === '' && currentSourceFilter === 'all') {
+                searchStats.innerHTML = `显示全部 <strong id="totalCount">${visibleCount}</strong> 条新闻`;
+            } else {
+                const filterText = keyword !== '' ? `"${keyword}"` : (currentSourceFilter !== 'all' ? currentSourceFilter : '');
+                searchStats.innerHTML = `找到 <strong>${visibleCount}</strong> 条匹配的新闻`;
+            }
+            
+            // 显示/隐藏无结果提示
+            if (visibleCount === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+        }
+        
+        function highlightKeyword(element, keyword) {
+            const originalText = element.getAttribute('data-original') || element.textContent;
+            if (!element.getAttribute('data-original')) {
+                element.setAttribute('data-original', originalText);
+            }
+            
+            const regex = new RegExp(`(${escapeRegex(keyword)})`, 'gi');
+            const highlightedText = originalText.replace(regex, '<span class="highlight">$1</span>');
+            element.querySelector('.news-link').innerHTML = highlightedText;
+        }
+        
+        function removeHighlight(element) {
+            const originalText = element.getAttribute('data-original');
+            if (originalText) {
+                element.querySelector('.news-link').textContent = originalText;
+            }
+        }
+        
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+        
+        function filterBySource(source) {
+            currentSourceFilter = source;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 执行搜索
+            performSearch();
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initSearch();
+        });
+
     </script>
 </body>
 </html>
